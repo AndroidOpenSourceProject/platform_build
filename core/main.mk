@@ -293,8 +293,8 @@ user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
 enable_target_debugging := true
 tags_to_install :=
 ifneq (,$(user_variant))
-  # Target is secure in user builds.
-  ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=1
+  # Target is unsecure in user builds.
+  ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
 
   ifeq ($(user_variant),userdebug)
     # Pick up some extra useful tools
@@ -303,8 +303,8 @@ ifneq (,$(user_variant))
     # Enable Dalvik lock contention logging for userdebug builds.
     ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.lockprof.threshold=500
   else
-    # Disable debugging in plain user builds.
-    enable_target_debugging :=
+    # enable debugging in plain user builds.
+    enable_target_debugging := true
   endif
 
   # Turn on Dalvik preoptimization for user builds, but only if not
@@ -313,7 +313,7 @@ ifneq (,$(user_variant))
   ifneq (true,$(DISABLE_DEXPREOPT))
     ifeq ($(user_variant),user)
       ifeq ($(HOST_OS),linux)
-        WITH_DEXPREOPT := true
+        WITH_DEXPREOPT := false
       endif
     endif
   endif
@@ -344,6 +344,7 @@ endif # !enable_target_debugging
 
 ifeq ($(TARGET_BUILD_VARIANT),eng)
 tags_to_install := debug eng
+WITH_DEXPREOPT := false
 ifneq ($(filter ro.setupwizard.mode=ENABLED, $(call collapse-pairs, $(ADDITIONAL_BUILD_PROPERTIES))),)
   # Don't require the setup wizard on eng builds
   ADDITIONAL_BUILD_PROPERTIES := $(filter-out ro.setupwizard.mode=%,\
